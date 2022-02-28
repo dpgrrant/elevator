@@ -39,3 +39,42 @@ typedef struct{
     int boarding_floor;
     int destination_floor;
 }Pet;
+
+struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND 
+
+void sys_calls_init(void){
+    STUB_start_elevator=start_elevator;
+    STUB_stop_elevator=stop_elevator;
+    STUB_issue_request=issue_request;
+}
+
+
+extern int (*STUB_start_elevator)(void);
+int start_elevator(void){
+    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+
+    }
+    mutex_unlock(&e.my_mutex);
+
+    return 1;
+}
+
+extern int (*STUB_stop_elevator)(void);
+int stop_elevator(void){
+    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+
+    }
+    mutex_unlock(&e.my_mutex);
+
+    return 1;
+}
+
+extern int (*STUB_issue_request)(void);
+int issue_request(void){
+    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+  
+    }
+    mutex_unlock(&e.my_mutex);
+
+    return 1;
+}
