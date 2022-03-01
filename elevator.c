@@ -27,6 +27,7 @@ struct thread_parameter{
     int c_weight;
     int c_occupants;
 }
+
 #define MAX_PETS 10
 #define MAX_WEIGHT 100
 #define PET_DOG 0
@@ -41,13 +42,6 @@ typedef struct{
 }Pet;
 
 struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND 
-
-void sys_calls_init(void){
-    STUB_start_elevator=start_elevator;
-    STUB_stop_elevator=stop_elevator;
-    STUB_issue_request=issue_request;
-}
-
 
 extern int (*STUB_start_elevator)(void);
 int start_elevator(void){
@@ -77,4 +71,26 @@ int issue_request(void){
     mutex_unlock(&e.my_mutex);
 
     return 1;
+}
+
+void init_sys_calls(void)           //assign STUB's to functions
+{
+    STUB_start_elevator=start_elevator;
+    STUB_stop_elevator=stop_elevator;
+    STUB_issue_request=issue_request;
+}
+
+int elevator(void * tparams)        //function used in kthread_run as the elevator mmodule
+{
+
+}
+
+void m_init(void){
+    init_sys_calls();
+    mutex_init(&e.my_mutex);
+    e->kthread=kthread_run(elevator,&e,"elevator thread");
+}
+void m_exit(void){
+
+
 }
