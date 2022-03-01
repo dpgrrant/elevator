@@ -90,7 +90,9 @@ void m_init(void){
     mutex_init(&e.my_mutex);
     e->kthread=kthread_run(elevator,&e,"elevator thread");
 }
+module_init(m_init);
 void m_exit(void){
 
 
 }
+module_exit(m_exit);
