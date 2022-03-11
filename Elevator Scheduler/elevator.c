@@ -111,7 +111,7 @@ void m_exit(void){
 
 	kthread_stop(e.kthread);
 	mutex_destroy(&e.mutex);
-	printk(KERN_NOTICE "Removing /proc/%s\n", ENTRY_NAME);
+	printk(KERN_NOTICE "Removing\n");
 
 
 }
