@@ -34,12 +34,12 @@ struct thread_parameter{
 #define PET_CAT 1
 #define PET_LIZARD 2
 
-typedef struct{
-    struct list_head list;
-    int pet_type;
-    int boarding_floor;
-    int destination_floor;
-}Pet;
+// typedef struct{
+//     struct list_head list;
+//     int pet_type;
+//     int boarding_floor;
+//     int destination_floor;
+// }Pet;
 
 struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND 
 
