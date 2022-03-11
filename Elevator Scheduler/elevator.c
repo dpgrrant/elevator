@@ -45,7 +45,10 @@ struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND
 
 extern int (*STUB_start_elevator)(void);
 int start_elevator(void){
+
+    printf("started");
     if(mutex_lock_interruptiple(&e.my_mutex)==0){
+
 
     }
     mutex_unlock(&e.my_mutex);
@@ -84,8 +87,10 @@ int elevator(void * tparams)        //function used in kthread_run as the elevat
 {
     while(!kthread_should_stop()){
 
-    }
 
+
+
+    }
 }
 
 void m_init(void){

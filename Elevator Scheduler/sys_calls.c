@@ -4,9 +4,9 @@
 
 int (*STUB_issue_request)(int,int,int) = NULL;
 EXPORT_SYMBOL(STUB_issue_request);
-asmlinkage int sys_issue_request(int current_floor, int final_floor,int pet_type) {
+asmlinkage int sys_issue_request(int boarding_floor, int final_floor,int pet_type) {
 	if (STUB_issue_request)
-		return STUB_issue_request(current_floor, final_floor,pet_type);
+		return STUB_issue_request(boarding_floor, final_floor,pet_type);
 	else
 		return -ENOSYS;
 }
