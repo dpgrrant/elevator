@@ -99,8 +99,9 @@ int elevator(void * tparams)        //function used in kthread_run as the elevat
 }
 
 void m_init(void){
-    init_sys_calls();
     mutex_init(&e.my_mutex);
+    init_sys_calls();
+    
     e->kthread=kthread_run(elevator,&e,"elevator thread");
 }
 module_init(m_init);
