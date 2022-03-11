@@ -85,6 +85,9 @@ void init_sys_calls(void)           //assign STUB's to functions
     STUB_issue_request=issue_request;
 }
 
+
+
+
 int elevator(void * tparams)        //function used in kthread_run as the elevator mmodule
 {
     while(!kthread_should_stop()){
@@ -102,6 +105,13 @@ void m_init(void){
 }
 module_init(m_init);
 void m_exit(void){
+    STUB_start_elevator = NULL;
+	STUB_issue_request = NULL;
+	STUB_stop_elevator = NULL;
+
+	kthread_stop(e.kthread);
+	mutex_destroy(&e.mutex);
+	printk(KERN_NOTICE "Removing /proc/%s\n", ENTRY_NAME);
 
 
 }
