@@ -58,6 +58,7 @@ int start_elevator(void){
 
 extern int (*STUB_stop_elevator)(void);
 int stop_elevator(void){
+    printk(KERN_NOTICE "stop\n");
     if(mutex_lock_interruptiple(&e.my_mutex)==0){
 
     }
@@ -67,7 +68,8 @@ int stop_elevator(void){
 }
 
 extern int (*STUB_issue_request)(void);
-int issue_request(void){
+int issue_request(int boarding_floor, int final_floor,int pet_type){
+     printk(KERN_NOTICE "issued \n");
     if(mutex_lock_interruptiple(&e.my_mutex)==0){
   
     }
