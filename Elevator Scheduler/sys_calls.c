@@ -4,7 +4,7 @@
 
 int (*STUB_issue_request)(int,int,int) = NULL;
 EXPORT_SYMBOL(STUB_issue_request);
-asmlinkage int sys_issue_request(int pet_type, int current_floor, int final_floor) {
+asmlinkage int sys_issue_request(int current_floor, int final_floor,int pet_type) {
 	if (STUB_issue_request)
 		return STUB_issue_request(pet_type, current_floor, final_floor);
 	else

@@ -82,6 +82,9 @@ void init_sys_calls(void)           //assign STUB's to functions
 
 int elevator(void * tparams)        //function used in kthread_run as the elevator mmodule
 {
+    while(!kthread_should_stop()){
+
+    }
 
 }
 
