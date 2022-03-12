@@ -111,9 +111,7 @@ void m_exit(void){
 	STUB_stop_elevator = NULL;
 
 	kthread_stop(e.kthread);
-	mutex_destroy(&e.mutex);
+	mutex_destroy(&e.my_mutex);
 	printk(KERN_NOTICE "Removing /proc/%s\n", ENTRY_NAME);
-
-
 }
 module_exit(m_exit);
