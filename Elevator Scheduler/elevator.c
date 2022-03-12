@@ -19,13 +19,12 @@ struct thread_parameter{
     struct list_head list;
     struct mutex my_mutex;
     struct task_struct *kthread;
-    int id;
-    int c_state;                //c_ == current_ n_ == next_
+    int c_state="OFFLINE";                //c_ == current_ n_ == next_
     int n_state;
-    int c_floor;
-    int n_floor;
-    int c_weight;
-    int c_occupants;
+    int c_floor=1;
+    int n_floor=1;
+    int c_weight=0;
+    int c_occupants=0;
     bool deactivated=true;
 };
 
