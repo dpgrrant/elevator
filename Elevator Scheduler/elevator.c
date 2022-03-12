@@ -26,6 +26,7 @@ struct thread_parameter{
     int n_floor;
     int c_weight;
     int c_occupants;
+    bool deactivated=true;
 };
 
 #define MAX_PETS 10
@@ -45,26 +46,47 @@ struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND
 
 extern int (*STUB_start_elevator)(void);
 int start_elevator(void){
-
     printk(KERN_NOTICE "started\n");
-    if(mutex_lock_interruptiple(&e.my_mutex)==0){
-
-
+    if(e.c_state!="OFFLINE"){
+        return 1;
     }
-    mutex_unlock(&e.my_mutex);
-
-    return 1;
+    else{
+        if(mutex_lock_interruptiple(&e.my_mutex)==0){
+            e.c_state = "IDLE";
+            e.c_floor=1;
+            e.c_occupants=0;
+            e.deactivated=false;
+        }
+        mutex_unlock(&e.my_mutex);
+        if(e.c_state=="OFFLINE"){
+            return -ERRORNUM;
+        }
+        return 0;
+    }
 }
 
 extern int (*STUB_stop_elevator)(void);
 int stop_elevator(void){
     printk(KERN_NOTICE "stop\n");
-    if(mutex_lock_interruptiple(&e.my_mutex)==0){
 
+    if(e.deactivated==true){
+        return 1;
+    }
+
+    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+        e.deactivated=true;
     }
     mutex_unlock(&e.my_mutex);
-
-    return 1;
+    
+   
+    do{
+        if(mutex_lock_interruptiple(&e.my_mutex)==0 && e.c_occupants=0){
+            e.c_state="OFFLINE";
+        }
+        mutex_unlock(&e.my_mutex);
+        
+    }while(c.occupants>0);
+    return 0;
 }
 
 extern int (*STUB_issue_request)(void);
