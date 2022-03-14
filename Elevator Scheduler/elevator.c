@@ -124,15 +124,18 @@ int elevator(void * tparams)        //function used in kthread_run as the elevat
             }
         }
         else if(e.c_state=="UP"){
-
             if(e.c_floor==10){
                 e.c_state="DOWN"
                 continue;
             }else{
                 ssleep(2);
-                e.c_floor=e.c_floor+e.c_floor+1;
+                e.c_floor=e.c_floor+1;
             }
-        
+
+            if(canUnload()){
+                startUnload();
+            }
+
             if(canLoad()){
                 startLoad();
                 continue;
@@ -141,14 +144,28 @@ int elevator(void * tparams)        //function used in kthread_run as the elevat
                 e.c_state="UP"
                 continue;
             }
-
-        }
-        else if(e.c_state=="LOADING"){
-
-        }
-       
+        }       
         else if(e.c_state=="DOWN"){
+            if(e.c_floor==1){
+                e.c_state="UP"
+                continue;
+            }else{
+                ssleep(2);
+                e.c_floor=e.c_floor-1;
+            }
 
+            if(canUnload()){
+                startUnload();
+            }
+        
+            if(canLoad()){
+                startLoad();
+                continue;
+
+            }else {
+                e.c_state="DOWN"
+                continue;
+            }
         }
     }
 }
