@@ -41,6 +41,8 @@ typedef struct{
 }Pet;
 
 struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND 
+struct list_head passengerInEachQueue[10];
+struct list_head passengersInsideElev[10];
 
 extern int (*STUB_start_elevator)(void);
 int start_elevator(void){
