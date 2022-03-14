@@ -25,7 +25,7 @@ struct thread_parameter{
     struct list_head list;
     struct mutex my_mutex;
     struct task_struct *kthread;
-    int c_state="OFFLINE";                //c_ == current_ n_ == next_
+    char* c_state="OFFLINE";                //c_ == current_ n_ == next_
     int c_floor=1;
     int c_weight=0;
     int c_occupants=0;
@@ -86,7 +86,7 @@ int stop_elevator(void){
         }
         mutex_unlock(&e.my_mutex);
         
-    }while(c.occupants>0);
+    }while(e.occupants>0);
     return 0;
 }
 
