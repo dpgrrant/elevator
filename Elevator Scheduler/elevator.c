@@ -33,8 +33,6 @@ struct thread_parameter{
     bool deactivated=true;
 };
 
-
-
 typedef struct{
     struct list_head list;
     int pet_type;
@@ -127,6 +125,7 @@ bool canLoad(){
     Pet * tempPet=NULL;
 
     if(mutex_lock_interruptiple(&e.my_mutex)==0){
+
         list_for_each_safe(pos, temp, &passengerInEachQueue){
             tempPet=list_entry(pos, Pet, passengerInEachQueue);
 
@@ -159,12 +158,41 @@ bool canLoad(){
                 }
             }
         }
+
     }
 
 }
 
 void startLoad(){
-
+    struct list_head * pos;
+	struct list_head * temp;
+    Pet *tempPet=NULL;
+    Pet *petOnElev=NULL;
+    
+  
+    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+        list_for_each_safe(pos, temp, &passengerInEachQueue){
+            tempPet=list_entry(pos, Pet, passengerInEachQueue);
+            if(tempPet->boarding_floor == e.c_floor){
+                
+                if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state=="UP"){
+                    petOnElev = kmalloc(sizeof(struct Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+                    petOnElev->pet_type=tempPet->pet_type;
+                    petOnElev->boarding_floor=tempPet->boarding_floor;
+                    petOnElev->destination_floor=tempPet->destination_floor;
+                    list_add_tail(&petOnElev->list, &passengersInsideElev);
+                    kfree(petOnElev);
+                }else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state=="DOWN"){
+                    petOnElev = kmalloc(sizeof(struct Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+                    petOnElev->pet_type=tempPet->pet_type;
+                    petOnElev->boarding_floor=tempPet->boarding_floor;
+                    petOnElev->destination_floor=tempPet->destination_floor;
+                    list_add_tail(&petOnElev->list, &passengersInsideElev);
+                    kfree(petOnElev);
+                }
+            } 
+        }
+    }
 }
 
 int elevator()        //function used in kthread_run as the elevator mmodule
@@ -235,8 +263,11 @@ int elevator()        //function used in kthread_run as the elevator mmodule
 void m_init(void){
     mutex_init(&e.my_mutex);
     init_sys_calls();
-    
     e->kthread=kthread_run(elevator,&e,"elevator thread");
+    for(int i=0;i<10;i++){
+        INIT_LIST_HEAD(passengerInEachQueue[i])
+        INIT_LIST_HEAD(passengersInsideElev[i])
+    }
 }
 module_init(m_init);
 void m_exit(void){
