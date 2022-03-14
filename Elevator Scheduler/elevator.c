@@ -13,7 +13,13 @@
 #define ENTRY_NAME "Elevator"
 #define PERMS 0644
 #define PARENT NULL
-static struct file_operations fops;
+
+#define MAX_PETS 10
+#define MAX_WEIGHT 100
+#define PET_CAT 0
+#define PET_DOG 1
+#define PET_LIZARD 2
+
 
 struct thread_parameter{
     struct list_head list;
@@ -27,11 +33,7 @@ struct thread_parameter{
     bool deactivated=true;
 };
 
-#define MAX_PETS 10
-#define MAX_WEIGHT 100
-#define PET_DOG 0
-#define PET_CAT 1
-#define PET_LIZARD 2
+
 
 typedef struct{
     struct list_head list;
@@ -41,6 +43,7 @@ typedef struct{
 }Pet;
 
 struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND 
+static struct file_operations fops;
 struct list_head passengerInEachQueue[10];
 struct list_head passengersInsideElev[10];
 
@@ -107,8 +110,62 @@ void init_sys_calls(void)           //assign STUB's to functions
     STUB_issue_request=issue_request;
 }
 
+void typeToWeight(int type){
+    //cat will weigh 15 lbs, each dog 45 lbs, and each lizard 5 lbs
+    if(type == PET_CAT){
+        return 15;
+    }else if(type == PET_DOG){
+        return 45;
+    }else if(typ == PET_LIZARD){
+        return 5;
+    }
+}
 
+bool canLoad(){
+    struct list_head * pos;
+	struct list_head * temp;
+    Pet * tempPet=NULL;
 
+    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+        list_for_each_safe(pos, temp, &passengerInEachQueue){
+            tempPet=list_entry(pos, Pet, passengerInEachQueue);
+
+            if(tempPet->boarding_floor == e.c_floor){
+                if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state=="UP"){
+
+                    if(e.c_occupants + 1 > MAX_PETS){
+                        mutex_unlock(&e.my_mutex);
+                        return false;
+                    }else if(e.c_weight + typeToWeight(tempPet->pet_type) > MAX_WEIGHT){
+                        mutex_unlock(&e.my_mutex);
+                        return false;
+                    }else {
+                        mutex_unlock(&e.my_mutex);
+                        return true;
+                    }
+                } 
+                else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state=="DOWN"){
+
+                    if(e.c_occupants + 1 > MAX_PETS){
+                        mutex_unlock(&e.my_mutex);
+                        return false;
+                    }else if(e.c_weight + typeToWeight(tempPet->pet_type) > MAX_WEIGHT){
+                        mutex_unlock(&e.my_mutex);
+                        return false;
+                    }else {
+                        mutex_unlock(&e.my_mutex);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+void startLoad(){
+
+}
 
 int elevator()        //function used in kthread_run as the elevator mmodule
 {
