@@ -23,7 +23,7 @@ struct thread_parameter{
     int c_floor=1;
     int c_weight=0;
     int c_occupants=0;
-    bool issuedRequest=false
+    bool issue_request=false
     bool deactivated=true;
 };
 
