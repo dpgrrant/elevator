@@ -20,9 +20,7 @@ struct thread_parameter{
     struct mutex my_mutex;
     struct task_struct *kthread;
     int c_state="OFFLINE";                //c_ == current_ n_ == next_
-    int n_state;
     int c_floor=1;
-    int n_floor=1;
     int c_weight=0;
     int c_occupants=0;
     bool deactivated=true;
@@ -116,18 +114,34 @@ int elevator(void * tparams)        //function used in kthread_run as the elevat
             break;
         }
         else if(e.c_state=="IDLE"){
+            if(canLoad()){
+                startLoad();
+                continue;
 
+            }else{
+                e.c_state="UP"
+                continue;
+            }
+        }
+        else if(e.c_state=="UP"){
+
+            if(canLoad()){
+                startLoad();
+                continue;
+
+            }
+            else if(e.c_floor==10){
+
+            }else{
+                ssleep(2);
+                e.c_floor=e.c_floor+e.c_floor+1;
+
+            }
         }
         else if(e.c_state=="LOADING"){
 
         }
-        else if(e.c_state=="UP"){
-            if(e.c_floor!=e.n_floor){
-                ssleep(2);
-                e.c_floor=e.n_floor;
-            }
-
-        }
+       
         else if(e.c_state=="DOWN"){
 
         }
