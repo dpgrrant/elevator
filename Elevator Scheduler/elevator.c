@@ -125,16 +125,16 @@ int elevator(void * tparams)        //function used in kthread_run as the elevat
         }
         else if(e.c_state=="UP"){
 
-            if(canLoad()){
-                startLoad();
-                continue;
-
-            }
-            else if(e.c_floor==10){
+            if(e.c_floor==10){
 
             }else{
                 ssleep(2);
                 e.c_floor=e.c_floor+e.c_floor+1;
+            }
+        
+            if(canLoad()){
+                startLoad();
+                continue;
 
             }
         }
