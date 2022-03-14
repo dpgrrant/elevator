@@ -112,10 +112,25 @@ void init_sys_calls(void)           //assign STUB's to functions
 int elevator(void * tparams)        //function used in kthread_run as the elevator mmodule
 {
     while(!kthread_should_stop()){
+        if(e.c_state=="OFFLINE"){
+            break;
+        }
+        else if(e.c_state=="IDLE"){
 
+        }
+        else if(e.c_state=="LOADING"){
 
+        }
+        else if(e.c_state=="UP"){
+            if(e.c_floor!=e.n_floor){
+                ssleep(2);
+                e.c_floor=e.n_floor;
+            }
 
+        }
+        else if(e.c_state=="DOWN"){
 
+        }
     }
 }
 
