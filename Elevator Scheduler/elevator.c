@@ -23,6 +23,7 @@ struct thread_parameter{
     int c_floor=1;
     int c_weight=0;
     int c_occupants=0;
+    bool issuedRequest=false
     bool deactivated=true;
 };
 
@@ -107,18 +108,20 @@ void init_sys_calls(void)           //assign STUB's to functions
 
 
 
-int elevator(void * tparams)        //function used in kthread_run as the elevator mmodule
+int elevator()        //function used in kthread_run as the elevator mmodule
 {
     while(!kthread_should_stop()){
         if(e.c_state=="OFFLINE"){
-            break;
+            continue;
         }
         else if(e.c_state=="IDLE"){
             if(canLoad()){
                 startLoad();
                 continue;
-
-            }else{
+            }else if(e.issue_request==false){
+                continue;
+            }
+            else{
                 e.c_state="UP"
                 continue;
             }
