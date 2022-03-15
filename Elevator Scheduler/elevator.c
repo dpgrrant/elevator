@@ -20,12 +20,20 @@
 #define PET_DOG 1
 #define PET_LIZARD 2
 
+#define OFFLINE=0
+#define IDLE=1
+#define UP=2
+#define DOWN=3
+#define LOADING=4
+
+
+
 
 struct thread_parameter{
     struct list_head list;
     struct mutex my_mutex;
     struct task_struct *kthread;
-    char* c_state="OFFLINE";                //c_ == current_ n_ == next_
+    int c_state="OFFLINE";                //c_ == current_ n_ == next_
     int c_floor=1;
     int c_weight=0;
     int c_occupants=0;
