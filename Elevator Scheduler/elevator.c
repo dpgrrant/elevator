@@ -134,7 +134,7 @@ bool canLoad(void){
 
     if(mutex_lock_interruptiple(&e.my_mutex)==0){
 
-        list_for_each_safe(pos, temp, &passengerInEachQueue[c_floor-1]){
+        list_for_each_safe(pos, temp, &passengerInEachQueue[e.c_floor-1]){
             tempPet=list_entry(pos, Pet, passengerInEachQueue);
 
             if(tempPet->boarding_floor == e.c_floor){
@@ -179,7 +179,7 @@ void startLoad(void){
     
   
     if(mutex_lock_interruptiple(&e.my_mutex)==0){
-        list_for_each_safe(pos, temp, &passengerInEachQueue[c_floor-1]){
+        list_for_each_safe(pos, temp, &passengerInEachQueue[e.c_floor-1]){
             tempPet=list_entry(pos, Pet, passengerInEachQueue);
             if(tempPet->boarding_floor == e.c_floor){
                 
