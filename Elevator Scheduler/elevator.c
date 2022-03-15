@@ -110,12 +110,11 @@ int issue_request(int boarding_floor, int final_floor,int pet_type){
     return 1;
 }
 
-int init_sys_calls(void)           //assign STUB's to functions
+void init_sys_calls(void)           //assign STUB's to functions
 {
     STUB_start_elevator=start_elevator;
     STUB_stop_elevator=stop_elevator;
     STUB_issue_request=issue_request;
-    return 1;
 }
 
 int typeToWeight(int type){
