@@ -76,25 +76,8 @@ extern int (*STUB_stop_elevator)(void);
 int stop_elevator(void){
     printk(KERN_NOTICE "stop\n");
 
-    if(e.deactivated==true){
-        return 1;
-    }
-
     if(mutex_lock_interruptible(&e.my_mutex)==0){
         e.deactivated=true;
-    }
-    mutex_unlock(&e.my_mutex);
-    
-    do{
-        if(e.c_occupants!=0){
-            printk(KERN_NOTICE "Waiting for all passengers to exit before stopping.\n");
-            ssleep(2);
-        }else{
-            break;
-        }
-    }while(1);
-
-    if(mutex_lock_interruptible(&e.my_mutex)==0){
         e.c_state=OFFLINE;
     }
     mutex_unlock(&e.my_mutex);
@@ -197,13 +180,15 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
 {
     while(!kthread_should_stop()){
         if(e.c_state==OFFLINE){
-            continue;
+            break;
         }
         else if(e.c_state==IDLE){
+            if(e.issue_request==false){
+                continue;
+            }
+            e.c_state=UP;
             if(canLoad()){
                 startLoad();
-                continue;
-            }else if(e.issue_request==false){
                 continue;
             }
             else{
@@ -264,10 +249,11 @@ int m_init(void){
     STUB_stop_elevator=stop_elevator;
     STUB_issue_request=issue_request;
     e.kthread=kthread_run(elevator,&e,"elevator thread");
+    INIT_LIST_HEAD(&passengersInsideElev);
     int i;
     for(i=0;i<10;i++){
         INIT_LIST_HEAD(&passengerInEachQueue[i]);
-        INIT_LIST_HEAD(&passengersInsideElev);
+        
     }
     return 0;
 }
