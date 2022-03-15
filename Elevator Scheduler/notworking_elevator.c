@@ -427,6 +427,8 @@ int print_animals(void ){
     Pet *entry=NULL;
 	struct list_head *temp;
     struct list_head *pos;
+
+    char* currentState;
     
 
 	char *buf = kmalloc(sizeof(char) * 100, __GFP_RECLAIM);
@@ -438,9 +440,22 @@ int print_animals(void ){
 	/* init message buffer */
 	strcpy(message, "");
 
-    
+    if(e.c_state==OFFLINE) {
+        currentState="OFFLINE";
+    }else if(e.c_state==IDLE) {
+         currentState="IDLE";
+        
+    }else if(e.c_state==UP) {
+         currentState="UP";
+        
+    }else if(e.c_state==DOWN) {
+         currentState="DOWN";
+        
+    } else if(e.c_state==LOADING) {
+         currentState="LOADING";
+    }           
 	/* headers, print to temporary then append to message buffer */
-	sprintf(buf, "Elevator state: %d\n", e.c_state);       strcat(message, buf);
+	sprintf(buf, "Elevator state: %s\n", currentState);       strcat(message, buf);
 	sprintf(buf, "Current floor: %d\n", e.c_floor);   strcat(message, buf);
 	sprintf(buf, "Current weight: %d\n", e.c_weight);   strcat(message, buf);
     printElevator();
@@ -477,6 +492,7 @@ int print_animals(void ){
                     sprintf(buf,"L "); strcat(message, buf);
                 }
             }
+            sprintf(buf,"\n", numEachQueue); strcat(message, buf);
         }else {
             sprintf(buf,"%d\n", numEachQueue); strcat(message, buf);
         }
