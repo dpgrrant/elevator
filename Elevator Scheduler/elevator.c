@@ -51,7 +51,7 @@ typedef struct{
 struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND 
 static struct file_operations fops;
 struct list_head passengerInEachQueue[10];
-struct list_head passengersInsideElev[10];
+struct list_head passengersInsideElev;
 
 extern int (*STUB_start_elevator)(void);
 int start_elevator(void){
@@ -134,7 +134,7 @@ bool canLoad(void){
 
     if(mutex_lock_interruptiple(&e.my_mutex)==0){
 
-        list_for_each_safe(pos, temp, &passengerInEachQueue){
+        list_for_each_safe(pos, temp, &passengerInEachQueue[c_floor-1]){
             tempPet=list_entry(pos, Pet, passengerInEachQueue);
 
             if(tempPet->boarding_floor == e.c_floor){
@@ -179,19 +179,19 @@ void startLoad(void){
     
   
     if(mutex_lock_interruptiple(&e.my_mutex)==0){
-        list_for_each_safe(pos, temp, &passengerInEachQueue){
+        list_for_each_safe(pos, temp, &passengerInEachQueue[c_floor-1]){
             tempPet=list_entry(pos, Pet, passengerInEachQueue);
             if(tempPet->boarding_floor == e.c_floor){
                 
                 if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state==UP){
-                    petOnElev = kmalloc(sizeof(struct Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+                    petOnElev = kmalloc(sizeof(Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
                     petOnElev->pet_type=tempPet->pet_type;
                     petOnElev->boarding_floor=tempPet->boarding_floor;
                     petOnElev->destination_floor=tempPet->destination_floor;
                     list_add_tail(&petOnElev->list, &passengersInsideElev);
                     kfree(petOnElev);
                 }else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state==DOWN){
-                    petOnElev = kmalloc(sizeof(struct Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+                    petOnElev = kmalloc(sizeof(Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
                     petOnElev->pet_type=tempPet->pet_type;
                     petOnElev->boarding_floor=tempPet->boarding_floor;
                     petOnElev->destination_floor=tempPet->destination_floor;
