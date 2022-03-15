@@ -68,7 +68,7 @@ int start_elevator(void){
         }
         mutex_unlock(&e.my_mutex);
         if(e.c_state==OFFLINE){
-            return -ERRORNUM;
+            return -1;
         }
         return 0;
     }
@@ -89,12 +89,12 @@ int stop_elevator(void){
     
    
     do{
-        if(mutex_lock_interruptiple(&e.my_mutex)==0 && e.c_occupants=0){
+        if(mutex_lock_interruptiple(&e.my_mutex)==0 && e.c_occupants==0){
             e.c_state=OFFLINE;
         }
         mutex_unlock(&e.my_mutex);
         
-    }while(e.occupants>0);
+    }while(e.c_occupants>0);
     return 0;
 }
 
