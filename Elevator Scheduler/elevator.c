@@ -95,7 +95,7 @@ int stop_elevator(void){
         }
         mutex_unlock(&e.my_mutex);
         
-    }while(e.c_occupants>0);
+    }while(e.c_occupants!=0);
     return 0;
 }
 
