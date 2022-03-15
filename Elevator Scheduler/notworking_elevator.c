@@ -131,6 +131,24 @@ void printingQueue(void) { // Prints the queue at each floor.
   printk("\n");
 }
 
+void printElevator(void) { // Prints the elevtor at each floor.
+  struct list_head *pos;
+  Pet* entry;
+  //int currentPos = 0;
+  int i = 0;
+  printk("Elevator Queue:\n");
+
+    list_for_each(pos, &passengersInsideElev) {
+      entry = list_entry(pos, Pet, list);
+      printk("Type: %d\nStart Floor: %d\nDest Floor: %d\n", entry->pet_type, entry->boarding_floor, entry->destination_floor);
+     // ++currentPos;
+    }
+ 
+  printk("\n");
+}
+
+
+
 void init_sys_calls(void)           //assign STUB's to functions
 {
     STUB_start_elevator=start_elevator;
@@ -155,15 +173,15 @@ bool canLoad(void){
     struct list_head * pos;
 	struct list_head * temp;
     Pet * tempPet=NULL;
-
+printk(KERN_NOTICE "In canload \n");
     if(mutex_lock_interruptible(&e.my_mutex)==0){
 
         list_for_each_safe(pos, temp, &passengerInEachQueue[e.c_floor-1]){
             tempPet=list_entry(pos, Pet, list);
-
+printk(KERN_NOTICE "inside list foreacg pasengerqueue \n");
             if(tempPet->boarding_floor == e.c_floor){
                 if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state==UP){
-
+                     	printk(KERN_NOTICE " going up inside canLoad -UP\n" );
                     if(e.c_occupants + 1 > MAX_PETS){
                         mutex_unlock(&e.my_mutex);
                         return false;
@@ -176,7 +194,7 @@ bool canLoad(void){
                     }
                 } 
                 else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state==DOWN){
-
+					printk(KERN_NOTICE " going down inside canLoad -DOWN\n" );
                     if(e.c_occupants + 1 > MAX_PETS){
                         mutex_unlock(&e.my_mutex);
                         return false;
@@ -192,6 +210,7 @@ bool canLoad(void){
         }
 
     }
+     mutex_unlock(&e.my_mutex);
     return false;
 
 }
@@ -202,63 +221,89 @@ void startLoad(void){
     Pet *tempPet=NULL;
     Pet *petOnElev=NULL;
     
-  
+    printk(KERN_NOTICE "In startLoad method \n");
     if(mutex_lock_interruptible(&e.my_mutex)==0){
+    	printk(KERN_NOTICE "In mutexlock \n");
         list_for_each_safe(pos, temp, &passengerInEachQueue[e.c_floor-1]){
             tempPet=list_entry(pos, Pet, list);
+            printk(KERN_NOTICE "insode listforeach \n");
             if(tempPet->boarding_floor == e.c_floor){
+            	
                 
                 if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state==UP){
-                	
+                	printk(KERN_NOTICE "In UP startload \n");
+                	e.c_state=LOADING;
+                    ssleep(1);
                     petOnElev = kmalloc(sizeof(Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
                     petOnElev->pet_type=tempPet->pet_type;
                     petOnElev->boarding_floor=tempPet->boarding_floor;
                     petOnElev->destination_floor=tempPet->destination_floor;
                     list_add_tail(&petOnElev->list, &passengersInsideElev);
+                     list_del(pos);
                     kfree(tempPet);
+                    	e.c_state=UP;
                 }else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state==DOWN){
+                	e.c_state=LOADING;
+                    ssleep(1);
                     petOnElev = kmalloc(sizeof(Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
                     petOnElev->pet_type=tempPet->pet_type;
                     petOnElev->boarding_floor=tempPet->boarding_floor;
                     petOnElev->destination_floor=tempPet->destination_floor;
                     list_add_tail(&petOnElev->list, &passengersInsideElev);
+                     list_del(pos);
                     kfree(tempPet);
+                    	e.c_state=DOWN;
+                    
                 }
             } 
         }
     }
+     mutex_unlock(&e.my_mutex);
 }
 int canUnload(void) { 
   Pet *entry=NULL; 
   struct list_head *pos;
+   if(mutex_lock_interruptible(&e.my_mutex)==0){
   list_for_each(pos, &passengersInsideElev) {
     entry = list_entry(pos, Pet, list);
     if (entry->destination_floor == e.c_floor) {
+    	printk(" canUnload" );
+    	mutex_unlock(&e.my_mutex);
       return 1;
     }
   }
-  
+}
+   mutex_unlock(&e.my_mutex);
   return 0;
 }
 
 void startUnload(void) {
   Pet *entry;
+  int tempState=e.c_state;
   struct list_head *pos, *q;
+  if(mutex_lock_interruptible(&e.my_mutex)==0){
   list_for_each_safe(pos, q, &passengersInsideElev) {
     entry = list_entry(pos, Pet, list);
     if (entry->destination_floor == e.c_floor) { 
      // total_pets_served++;
+     e.c_state=LOADING;
+     ssleep(1);
       list_del(pos);
+      
       kfree(entry);
+      
     }
+   }
   }
+  e.c_state=tempState;
+  mutex_unlock(&e.my_mutex);
 }
 
 int elevator(void *data)        //function used in kthread_run as the elevator mmodule
 {
     while(!kthread_should_stop()){
         if(e.c_state==OFFLINE){
-            break;
+            continue;
         }
         else if(e.c_state==IDLE){
         	if(e.issue_requested==false){
@@ -267,7 +312,10 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
         	e.c_state=UP;
             if(canLoad()){
             	printk(KERN_NOTICE "canLoad=true \n");
+            	printingQueue();
                 startLoad();
+                printingQueue();
+                printElevator();
                 continue;
             }
             else{
@@ -276,6 +324,13 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
             }
         }
         else if(e.c_state==UP){
+        	printk(" going up and Floor: %d\n", e.c_floor);	
+        	 if(canUnload()){
+        	 	printElevator();
+                 startUnload();
+                 printElevator();
+             }
+             
             if(e.c_floor==10){
                 e.c_state=DOWN;
                 continue;
@@ -285,12 +340,14 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
                 
             }
 
-             if(canUnload()){
-                 startUnload();
-             }
+            
 
             if(canLoad()){
+            	printElevator();
+            	printingQueue();
                 startLoad();
+                printingQueue();
+                printElevator();
                 continue;
 
             }else {
@@ -299,6 +356,16 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
             }
         }       
         else if(e.c_state==DOWN){
+        		printk(" going down and Floor: %d\n", e.c_floor);
+        		
+             if(canUnload()){
+             	printElevator();
+             	printingQueue();
+                 startUnload();
+                 printElevator();
+                 printingQueue();
+             }
+             
             if(e.c_floor==1){
                 e.c_state=UP;
                 continue;
@@ -307,12 +374,13 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
                 e.c_floor=e.c_floor-1;
             }
 
-             if(canUnload()){
-                 startUnload();
-             }
         
             if(canLoad()){
+            	printingQueue();
+            	printElevator();
                 startLoad();
+                printElevator();
+                printingQueue();
                 continue;
 
             }else {
