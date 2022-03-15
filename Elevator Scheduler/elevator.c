@@ -33,12 +33,12 @@ struct thread_parameter{
     struct list_head list;
     struct mutex my_mutex;
     struct task_struct *kthread;
-    int c_state=OFFLINE;                //c_ == current_ n_ == next_
-    int c_floor=1;
-    int c_weight=0;
-    int c_occupants=0;
-    bool issue_request=false
-    bool deactivated=true;
+    int c_state;                //c_ == current_ n_ == next_
+    int c_floor;
+    int c_weight;
+    int c_occupants;
+    bool issue_request;
+    bool deactivated;
 };
 
 typedef struct{
