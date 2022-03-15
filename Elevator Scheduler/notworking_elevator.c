@@ -116,7 +116,7 @@ void printingQueue(void) { // Prints the queue at each floor.
   Pet* entry;
   int currentPos = 0;
   int i = 0;
-  printk("Passenger Queue:\n");
+  printk("============Passenger Queue:==========\n");
 
   while (i < 10) {
     printk("Floor: %d\n", i+1);
@@ -134,14 +134,12 @@ void printingQueue(void) { // Prints the queue at each floor.
 void printElevator(void) { // Prints the elevtor at each floor.
   struct list_head *pos;
   Pet* entry;
-  //int currentPos = 0;
   int i = 0;
-  printk("Elevator Queue:\n");
+  printk("===============Elevator Queue:=====================\n");
 
     list_for_each(pos, &passengersInsideElev) {
       entry = list_entry(pos, Pet, list);
       printk("Type: %d\nStart Floor: %d\nDest Floor: %d\n", entry->pet_type, entry->boarding_floor, entry->destination_floor);
-     // ++currentPos;
     }
  
   printk("\n");
@@ -173,15 +171,13 @@ bool canLoad(void){
     struct list_head * pos;
 	struct list_head * temp;
     Pet * tempPet=NULL;
-printk(KERN_NOTICE "In canload \n");
     if(mutex_lock_interruptible(&e.my_mutex)==0){
 
         list_for_each_safe(pos, temp, &passengerInEachQueue[e.c_floor-1]){
             tempPet=list_entry(pos, Pet, list);
-printk(KERN_NOTICE "inside list foreacg pasengerqueue \n");
             if(tempPet->boarding_floor == e.c_floor){
                 if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state==UP){
-                     	printk(KERN_NOTICE " going up inside canLoad -UP\n" );
+                     	printk(KERN_NOTICE " going UP while canload check\n" );
                     if(e.c_occupants + 1 > MAX_PETS){
                         mutex_unlock(&e.my_mutex);
                         return false;
@@ -189,12 +185,13 @@ printk(KERN_NOTICE "inside list foreacg pasengerqueue \n");
                         mutex_unlock(&e.my_mutex);
                         return false;
                     }else {
+                    
                         mutex_unlock(&e.my_mutex);
                         return true;
                     }
                 } 
                 else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state==DOWN){
-					printk(KERN_NOTICE " going down inside canLoad -DOWN\n" );
+					printk(KERN_NOTICE " going DOWN while canload check\n" );
                     if(e.c_occupants + 1 > MAX_PETS){
                         mutex_unlock(&e.my_mutex);
                         return false;
@@ -202,6 +199,7 @@ printk(KERN_NOTICE "inside list foreacg pasengerqueue \n");
                         mutex_unlock(&e.my_mutex);
                         return false;
                     }else {
+                    
                         mutex_unlock(&e.my_mutex);
                         return true;
                     }
@@ -221,16 +219,20 @@ void startLoad(void){
     Pet *tempPet=NULL;
     Pet *petOnElev=NULL;
     
-    printk(KERN_NOTICE "In startLoad method \n");
     if(mutex_lock_interruptible(&e.my_mutex)==0){
-    	printk(KERN_NOTICE "In mutexlock \n");
         list_for_each_safe(pos, temp, &passengerInEachQueue[e.c_floor-1]){
             tempPet=list_entry(pos, Pet, list);
-            printk(KERN_NOTICE "insode listforeach \n");
             if(tempPet->boarding_floor == e.c_floor){
-            	
-                
+            	     
                 if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state==UP){
+                	 if(e.c_weight + typeToWeight(tempPet->pet_type) > MAX_WEIGHT){
+                        mutex_unlock(&e.my_mutex);
+                        break;
+                    }
+                    if(e.c_occupants + 1 > MAX_PETS){
+                        mutex_unlock(&e.my_mutex);
+                        break;
+                    }
                 	printk(KERN_NOTICE "In UP startload \n");
                 	e.c_state=LOADING;
                     ssleep(1);
@@ -239,10 +241,21 @@ void startLoad(void){
                     petOnElev->boarding_floor=tempPet->boarding_floor;
                     petOnElev->destination_floor=tempPet->destination_floor;
                     list_add_tail(&petOnElev->list, &passengersInsideElev);
+                    e.c_weight= e.c_weight + typeToWeight(tempPet->pet_type);
+                    e.c_occupants++;
                      list_del(pos);
                     kfree(tempPet);
                     	e.c_state=UP;
                 }else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state==DOWN){
+                	if(e.c_weight + typeToWeight(tempPet->pet_type) > MAX_WEIGHT){
+                        mutex_unlock(&e.my_mutex);
+                        break;
+                    }
+                    if(e.c_occupants + 1 > MAX_PETS){
+                        mutex_unlock(&e.my_mutex);
+                        break;
+                    }
+                	printk(KERN_NOTICE "In DOWN startload \n");
                 	e.c_state=LOADING;
                     ssleep(1);
                     petOnElev = kmalloc(sizeof(Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
@@ -250,6 +263,8 @@ void startLoad(void){
                     petOnElev->boarding_floor=tempPet->boarding_floor;
                     petOnElev->destination_floor=tempPet->destination_floor;
                     list_add_tail(&petOnElev->list, &passengersInsideElev);
+                    e.c_weight= e.c_weight + typeToWeight(tempPet->pet_type);
+                    e.c_occupants++;
                      list_del(pos);
                     kfree(tempPet);
                     	e.c_state=DOWN;
@@ -287,6 +302,8 @@ void startUnload(void) {
     if (entry->destination_floor == e.c_floor) { 
      // total_pets_served++;
      e.c_state=LOADING;
+     e.c_occupants--;
+     e.c_weight=e.c_weight- typeToWeight(entry->pet_type);
      ssleep(1);
       list_del(pos);
       
@@ -306,16 +323,16 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
             continue;
         }
         else if(e.c_state==IDLE){
+        	printingQueue();
         	if(e.issue_requested==false){
                 continue;
             }
         	e.c_state=UP;
             if(canLoad()){
-            	printk(KERN_NOTICE "canLoad=true \n");
-            	printingQueue();
-                startLoad();
-                printingQueue();
+            	printk(KERN_NOTICE "canLoad=true \n");            
+                startLoad();               
                 printElevator();
+                printingQueue();
                 continue;
             }
             else{
@@ -326,7 +343,7 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
         else if(e.c_state==UP){
         	printk(" going up and Floor: %d\n", e.c_floor);	
         	 if(canUnload()){
-        	 	printElevator();
+        	 	
                  startUnload();
                  printElevator();
              }
@@ -343,8 +360,7 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
             
 
             if(canLoad()){
-            	printElevator();
-            	printingQueue();
+                        
                 startLoad();
                 printingQueue();
                 printElevator();
@@ -358,9 +374,7 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
         else if(e.c_state==DOWN){
         		printk(" going down and Floor: %d\n", e.c_floor);
         		
-             if(canUnload()){
-             	printElevator();
-             	printingQueue();
+             if(canUnload()){            	
                  startUnload();
                  printElevator();
                  printingQueue();
@@ -376,8 +390,7 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
 
         
             if(canLoad()){
-            	printingQueue();
-            	printElevator();
+            
                 startLoad();
                 printElevator();
                 printingQueue();
