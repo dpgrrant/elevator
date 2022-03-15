@@ -33,7 +33,7 @@ struct thread_parameter{
     struct list_head list;
     struct mutex my_mutex;
     struct task_struct *kthread;
-    int c_state="OFFLINE";                //c_ == current_ n_ == next_
+    int c_state=OFFLINE;                //c_ == current_ n_ == next_
     int c_floor=1;
     int c_weight=0;
     int c_occupants=0;
@@ -56,18 +56,18 @@ struct list_head passengersInsideElev[10];
 extern int (*STUB_start_elevator)(void);
 int start_elevator(void){
     printk(KERN_NOTICE "started\n");
-    if(e.c_state!="OFFLINE"){
+    if(e.c_state!=OFFLINE){
         return 1;
     }
     else{
         if(mutex_lock_interruptiple(&e.my_mutex)==0){
-            e.c_state = "IDLE";
+            e.c_state = IDLE;
             e.c_floor=1;
             e.c_occupants=0;
             e.deactivated=false;
         }
         mutex_unlock(&e.my_mutex);
-        if(e.c_state=="OFFLINE"){
+        if(e.c_state==OFFLINE){
             return -ERRORNUM;
         }
         return 0;
@@ -90,7 +90,7 @@ int stop_elevator(void){
    
     do{
         if(mutex_lock_interruptiple(&e.my_mutex)==0 && e.c_occupants=0){
-            e.c_state="OFFLINE";
+            e.c_state=OFFLINE;
         }
         mutex_unlock(&e.my_mutex);
         
@@ -138,7 +138,7 @@ bool canLoad(){
             tempPet=list_entry(pos, Pet, passengerInEachQueue);
 
             if(tempPet->boarding_floor == e.c_floor){
-                if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state=="UP"){
+                if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state==UP){
 
                     if(e.c_occupants + 1 > MAX_PETS){
                         mutex_unlock(&e.my_mutex);
@@ -151,7 +151,7 @@ bool canLoad(){
                         return true;
                     }
                 } 
-                else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state=="DOWN"){
+                else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state==DOWN){
 
                     if(e.c_occupants + 1 > MAX_PETS){
                         mutex_unlock(&e.my_mutex);
@@ -183,14 +183,14 @@ void startLoad(){
             tempPet=list_entry(pos, Pet, passengerInEachQueue);
             if(tempPet->boarding_floor == e.c_floor){
                 
-                if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state=="UP"){
+                if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state==UP){
                     petOnElev = kmalloc(sizeof(struct Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
                     petOnElev->pet_type=tempPet->pet_type;
                     petOnElev->boarding_floor=tempPet->boarding_floor;
                     petOnElev->destination_floor=tempPet->destination_floor;
                     list_add_tail(&petOnElev->list, &passengersInsideElev);
                     kfree(petOnElev);
-                }else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state=="DOWN"){
+                }else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state==DOWN){
                     petOnElev = kmalloc(sizeof(struct Pet), __GFP_RECLAIM | __GFP_IO | __GFP_FS);
                     petOnElev->pet_type=tempPet->pet_type;
                     petOnElev->boarding_floor=tempPet->boarding_floor;
