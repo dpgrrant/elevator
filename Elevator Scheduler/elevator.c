@@ -205,7 +205,7 @@ void startLoad(void){
     }
 }
 
-int elevator(void)        //function used in kthread_run as the elevator mmodule
+int elevator(void *data)        //function used in kthread_run as the elevator mmodule
 {
     while(!kthread_should_stop()){
         if(e.c_state==OFFLINE){
@@ -270,7 +270,7 @@ int elevator(void)        //function used in kthread_run as the elevator mmodule
     }
 }
 
-void m_init(void){
+void m_init(void*){
     mutex_init(&e.my_mutex);
     init_sys_calls();
     e.kthread=kthread_run(elevator,&e,"elevator thread");
