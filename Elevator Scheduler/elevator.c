@@ -62,6 +62,7 @@ int start_elevator(void){
     }
     else{
         if(mutex_lock_interruptible(&e.my_mutex)==0){
+            printk(KERN_NOTICE "Set to IDLE\n");
             e.c_state = IDLE;
             e.c_floor=1;
             e.c_occupants=0;
