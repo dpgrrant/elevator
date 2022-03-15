@@ -206,10 +206,10 @@ void startLoad(){
 int elevator()        //function used in kthread_run as the elevator mmodule
 {
     while(!kthread_should_stop()){
-        if(e.c_state=="OFFLINE"){
+        if(e.c_state==OFFLINE){
             continue;
         }
-        else if(e.c_state=="IDLE"){
+        else if(e.c_state==IDLE){
             if(canLoad()){
                 startLoad();
                 continue;
@@ -217,13 +217,13 @@ int elevator()        //function used in kthread_run as the elevator mmodule
                 continue;
             }
             else{
-                e.c_state="UP"
+                e.c_state=UP
                 continue;
             }
         }
-        else if(e.c_state=="UP"){
+        else if(e.c_state==UP){
             if(e.c_floor==10){
-                e.c_state="DOWN"
+                e.c_state=DOWN
                 continue;
             }else{
                 ssleep(2);
@@ -239,13 +239,13 @@ int elevator()        //function used in kthread_run as the elevator mmodule
                 continue;
 
             }else {
-                e.c_state="UP"
+                e.c_state=UP
                 continue;
             }
         }       
-        else if(e.c_state=="DOWN"){
+        else if(e.c_state==DOWN){
             if(e.c_floor==1){
-                e.c_state="UP"
+                e.c_state=UP
                 continue;
             }else{
                 ssleep(2);
@@ -261,7 +261,7 @@ int elevator()        //function used in kthread_run as the elevator mmodule
                 continue;
 
             }else {
-                e.c_state="DOWN"
+                e.c_state=DOWN
                 continue;
             }
         }
