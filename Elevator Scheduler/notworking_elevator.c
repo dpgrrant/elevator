@@ -11,7 +11,7 @@
 #include <linux/kthread.h>
 #include <linux/delay.h>
 
-#define ENTRY_NAME "Elevator"
+#define ENTRY_NAME "elevator"
 #define PERMS 0644
 #define PARENT NULL
 
@@ -50,8 +50,16 @@ typedef struct{
     int destination_floor;
 }Pet;
 
-struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND 
+int cat=0;
+int dog=0;
+int lizard=0;
+
 static struct file_operations fops;
+static char *message;
+static int read_p;
+
+
+struct thread_parameter e;          //THIS IS THE ELEVATOR e FOR SHORTHAND 
 struct list_head passengerInEachQueue[10];
 struct list_head passengersInsideElev;
 
@@ -111,10 +119,12 @@ int issue_request(int boarding_floor, int final_floor,int pet_type){
      printingQueue();
     return 1;
 }
-void printingQueue(void) { // Prints the queue at each floor.
+
+int printingQueue(void) { // Prints the queue at each floor.
   struct list_head *pos;
   Pet* entry;
   int currentPos = 0;
+  int numWaitingQueue=0;
   int i = 0;
   printk("============Passenger Queue:==========\n");
 
@@ -124,35 +134,42 @@ void printingQueue(void) { // Prints the queue at each floor.
       entry = list_entry(pos, Pet, list);
       printk("Queue pos: %d\nType: %d\nStart Floor: %d\nDest Floor: %d\n", currentPos, entry->pet_type, entry->boarding_floor, entry->destination_floor);
       ++currentPos;
+      numWaitingQueue++;
     }
   i++;
   }
-  
-  printk("\n");
+printk("\n");
+  return numWaitingQueue;
+
 }
 
 void printElevator(void) { // Prints the elevtor at each floor.
   struct list_head *pos;
   Pet* entry;
   int i = 0;
-  printk("===============Elevator Queue:=====================\n");
+  cat=0;
+  dog=0;
+  lizard=0;
 
+
+  printk("===============Elevator Queue:=====================\n");
     list_for_each(pos, &passengersInsideElev) {
       entry = list_entry(pos, Pet, list);
+      if(entry->pet_type==PET_CAT){
+          cat++;
+      }
+      else if(entry->pet_type==PET_DOG){
+          dog++;
+      }
+      else if(entry->pet_type==PET_LIZARD){
+          lizard++;
+      }
       printk("Type: %d\nStart Floor: %d\nDest Floor: %d\n", entry->pet_type, entry->boarding_floor, entry->destination_floor);
     }
  
   printk("\n");
 }
 
-
-
-void init_sys_calls(void)           //assign STUB's to functions
-{
-    STUB_start_elevator=start_elevator;
-    STUB_stop_elevator=stop_elevator;
-    STUB_issue_request=issue_request;
-}
 
 int typeToWeight(int type){
     //cat will weigh 15 lbs, each dog 45 lbs, and each lizard 5 lbs
@@ -212,7 +229,6 @@ bool canLoad(void){
     return false;
 
 }
-
 void startLoad(void){
     struct list_head * pos;
 	struct list_head * temp;
@@ -291,7 +307,6 @@ int canUnload(void) {
    mutex_unlock(&e.my_mutex);
   return 0;
 }
-
 void startUnload(void) {
   Pet *entry;
   int tempState=e.c_state;
@@ -304,8 +319,9 @@ void startUnload(void) {
      e.c_state=LOADING;
      e.c_occupants--;
      e.c_weight=e.c_weight- typeToWeight(entry->pet_type);
+     e.total_pets_served++;
      ssleep(1);
-      list_del(pos);
+     list_del(pos);
       
       kfree(entry);
       
@@ -405,16 +421,128 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
     return 0;
 }
 
+int print_animals(void ){
+    int i;
+	Animal *a;
+	struct list_head *temp;
+
+	char *buf = kmalloc(sizeof(char) * 100, __GFP_RECLAIM);
+	if (buf == NULL) {
+		printk(KERN_WARNING "print_animals");
+		return -ENOMEM;
+	}
+
+	/* init message buffer */
+	strcpy(message, "");
+
+    
+	/* headers, print to temporary then append to message buffer */
+	sprintf(buf, "Elevator state: %d\n", e.c_state);       strcat(message, buf);
+	sprintf(buf, "Current floor: %d\n", e.c_floor);   strcat(message, buf);
+	sprintf(buf, "Current weight: %d\n", e.c_weight);   strcat(message, buf);
+    printElevator();
+	sprintf(buf, "Elevator status: %d C, %d D, %d L\n", cat, dog,lizard );           strcat(message, buf);
+    sprintf(buf, "Number of passengers: %d\n", e.c_occupants);   strcat(message, buf);
+    sprintf(buf, "Number of passengers waiting: %d\n", printingQueue());   strcat(message, buf);
+    sprintf(buf, "Number passengers serviced: %d\n", e.total_pets_served);   strcat(message, buf);
+
+
+    int i=10;
+    char cfloor='';
+    int numEachQueue;
+    while (i > 0) {
+        numEachQueue=0;
+        if (i==e.c_floor){
+            cfloor='*';
+        }else {
+            cfloor='';
+        }
+        sprintf(buf,"[ %c ] Floor: %d: ", cfloor, i); strcat(message, buf);
+        list_for_each(pos, &passengerInEachQueue[i-1]) {
+        entry = list_entry(pos, Pet, list);
+        numEachQueue++;
+        }
+
+        if(numEachQueue!=0){
+            list_for_each(pos, &passengerInEachQueue[i-1]) {
+                entry = list_entry(pos, Pet, list);
+                if(entry->pet_type==PET_CAT){
+                    sprintf(buf,"C "); strcat(message, buf);
+                }else if(entry->pet_type==PET_DOG){
+                    sprintf(buf,"D "); strcat(message, buf);
+                }else if(entry->pet_type==PET_LIZARD){
+                    sprintf(buf,"L "); strcat(message, buf);
+                }
+            }
+        }else {
+            sprintf(buf,"%d\n", numEachQueue); strcat(message, buf);
+        }
+
+        i--;
+    }
+
+	/* trailing newline to separate file from commands */
+	strcat(message, "\n");
+
+	kfree(buf);
+	return 0;
+}
+
+
+int animal_proc_open(struct inode *sp_inode, struct file *sp_file) {
+	read_p = 1;
+	message = kmalloc(sizeof(char) * ENTRY_SIZE, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+	if (message == NULL) {
+		printk(KERN_WARNING "animal_proc_open");
+		return -ENOMEM;
+	}
+	return print_animals();
+}
+
+ssize_t animal_proc_read(struct file *sp_file, char __user *buf, size_t size, loff_t *offset) {
+	int len = strlen(message);
+	
+	read_p = !read_p;
+	if (read_p)
+		return 0;
+		
+	copy_to_user(buf, message, len);
+	return len;
+}
+
+int animal_proc_release(struct inode *sp_inode, struct file *sp_file) {
+	kfree(message);
+	return 0;
+}
+
+
+
+
 int m_init(void){
     mutex_init(&e.my_mutex);
-    init_sys_calls();
+
+
+    STUB_start_elevator=start_elevator;
+    STUB_stop_elevator=stop_elevator;
+    STUB_issue_request=issue_request;
+
+
+    fops.open = animal_proc_open;
+	fops.read = animal_proc_read;
+	fops.release = animal_proc_release;
+
+    if (!proc_create(ENTRY_NAME, PERMS, NULL, &fops)) {
+		printk(KERN_WARNING "creating proc ERR\n");
+		remove_proc_entry(ENTRY_NAME, NULL);
+		return -ENOMEM;
+	}
+
     e.kthread=kthread_run(elevator,&e,"elevator thread");
     int i;
-     INIT_LIST_HEAD(&passengersInsideElev);
+    INIT_LIST_HEAD(&passengersInsideElev);
+
     for(i=0;i<10;i++){
-    	
         INIT_LIST_HEAD(&passengerInEachQueue[i]);
-       
     }
     return 0;
 }
@@ -424,9 +552,10 @@ void m_exit(void){
     STUB_start_elevator = NULL;
 	STUB_issue_request = NULL;
 	STUB_stop_elevator = NULL;
-
-	kthread_stop(e.kthread);
-	mutex_destroy(&e.my_mutex);
+	
+    kthread_stop(e.kthread);
+	remove_proc_entry(ENTRY_NAME, NULL);
+    mutex_destroy(&e.my_mutex);
 	
 }
 module_exit(m_exit);
