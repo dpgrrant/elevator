@@ -98,7 +98,7 @@ int stop_elevator(void){
     return 0;
 }
 
-extern int (*STUB_issue_request)(void);
+extern int (*STUB_issue_request)(int,int,int);
 int issue_request(int boarding_floor, int final_floor,int pet_type){
      printk(KERN_NOTICE "issued \n");
     if(mutex_lock_interruptible(&e.my_mutex)==0){
@@ -109,11 +109,12 @@ int issue_request(int boarding_floor, int final_floor,int pet_type){
     return 1;
 }
 
-void init_sys_calls(void)           //assign STUB's to functions
+int init_sys_calls(void)           //assign STUB's to functions
 {
     STUB_start_elevator=start_elevator;
     STUB_stop_elevator=stop_elevator;
     STUB_issue_request=issue_request;
+    return 1;
 }
 
 int typeToWeight(int type){
