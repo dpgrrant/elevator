@@ -116,13 +116,13 @@ void init_sys_calls(void)           //assign STUB's to functions
     STUB_issue_request=issue_request;
 }
 
-void typeToWeight(int type){
+int typeToWeight(int type){
     //cat will weigh 15 lbs, each dog 45 lbs, and each lizard 5 lbs
     if(type == PET_CAT){
         return 15;
     }else if(type == PET_DOG){
         return 45;
-    }else if(typ == PET_LIZARD){
+    }else if(type == PET_LIZARD){
         return 5;
     }
 }
