@@ -15,6 +15,7 @@
 #define PERMS 0644
 #define PARENT NULL
 
+#define ENTRY_SIZE 1000
 #define MAX_PETS 10
 #define MAX_WEIGHT 100
 #define PET_CAT 0
@@ -27,7 +28,7 @@
 #define DOWN 3
 #define LOADING 4
 
-void printingQueue(void);
+int printingQueue(void);
 
 
 struct thread_parameter{
@@ -422,9 +423,11 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
 }
 
 int print_animals(void ){
-    int i;
-	Animal *a;
+   
+    Pet *entry=NULL;
 	struct list_head *temp;
+    struct list_head *pos;
+    
 
 	char *buf = kmalloc(sizeof(char) * 100, __GFP_RECLAIM);
 	if (buf == NULL) {
@@ -448,14 +451,14 @@ int print_animals(void ){
 
 
     int i=10;
-    char cfloor='';
+    char cfloor=' ';
     int numEachQueue;
     while (i > 0) {
         numEachQueue=0;
         if (i==e.c_floor){
             cfloor='*';
         }else {
-            cfloor='';
+            cfloor=' ';
         }
         sprintf(buf,"[ %c ] Floor: %d: ", cfloor, i); strcat(message, buf);
         list_for_each(pos, &passengerInEachQueue[i-1]) {
