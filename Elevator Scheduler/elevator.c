@@ -9,6 +9,7 @@
 #include <linux/uaccess.h>
 #include <linux/random.h>
 #include <linux/kthread.h>
+#include <linux/delay.h>
 
 #define ENTRY_NAME "Elevator"
 #define PERMS 0644
