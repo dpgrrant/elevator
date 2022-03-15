@@ -269,15 +269,16 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
     }
 }
 
-void m_init(void){
+int m_init(void){
     mutex_init(&e.my_mutex);
     init_sys_calls();
     e.kthread=kthread_run(elevator,&e,"elevator thread");
     int i;
     for(i=0;i<10;i++){
-        INIT_LIST_HEAD(passengerInEachQueue[i])
-        INIT_LIST_HEAD(passengersInsideElev)
+        INIT_LIST_HEAD(passengerInEachQueue[i]);
+        INIT_LIST_HEAD(passengersInsideElev);
     }
+    return 0;
 }
 module_init(m_init);
 void m_exit(void){
