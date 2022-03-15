@@ -60,7 +60,7 @@ int start_elevator(void){
         return 1;
     }
     else{
-        if(mutex_lock_interruptiple(&e.my_mutex)==0){
+        if(mutex_lock_interruptible(&e.my_mutex)==0){
             e.c_state = IDLE;
             e.c_floor=1;
             e.c_occupants=0;
@@ -82,14 +82,14 @@ int stop_elevator(void){
         return 1;
     }
 
-    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+    if(mutex_lock_interruptible(&e.my_mutex)==0){
         e.deactivated=true;
     }
     mutex_unlock(&e.my_mutex);
     
    
     do{
-        if(mutex_lock_interruptiple(&e.my_mutex)==0 && e.c_occupants==0){
+        if(mutex_lock_interruptible(&e.my_mutex)==0 && e.c_occupants==0){
             e.c_state=OFFLINE;
         }
         mutex_unlock(&e.my_mutex);
@@ -101,7 +101,7 @@ int stop_elevator(void){
 extern int (*STUB_issue_request)(void);
 int issue_request(int boarding_floor, int final_floor,int pet_type){
      printk(KERN_NOTICE "issued \n");
-    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+    if(mutex_lock_interruptible(&e.my_mutex)==0){
   
     }
     mutex_unlock(&e.my_mutex);
@@ -132,7 +132,7 @@ bool canLoad(void){
 	struct list_head * temp;
     Pet * tempPet=NULL;
 
-    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+    if(mutex_lock_interruptible(&e.my_mutex)==0){
 
         list_for_each_safe(pos, temp, &passengerInEachQueue[e.c_floor-1]){
             tempPet=list_entry(pos, Pet, passengerInEachQueue);
@@ -178,7 +178,7 @@ void startLoad(void){
     Pet *petOnElev=NULL;
     
   
-    if(mutex_lock_interruptiple(&e.my_mutex)==0){
+    if(mutex_lock_interruptible(&e.my_mutex)==0){
         list_for_each_safe(pos, temp, &passengerInEachQueue[e.c_floor-1]){
             tempPet=list_entry(pos, Pet, passengerInEachQueue);
             if(tempPet->boarding_floor == e.c_floor){
