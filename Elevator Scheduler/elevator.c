@@ -231,9 +231,9 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
                 e.c_floor=e.c_floor+1;
             }
 
-            if(canUnload()){
-                startUnload();
-            }
+            // if(canUnload()){
+            //     startUnload();
+            // }
 
             if(canLoad()){
                 startLoad();
@@ -253,9 +253,9 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
                 e.c_floor=e.c_floor-1;
             }
 
-            if(canUnload()){
-                startUnload();
-            }
+            // if(canUnload()){
+            //     startUnload();
+            // }
         
             if(canLoad()){
                 startLoad();
