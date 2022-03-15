@@ -20,11 +20,11 @@
 #define PET_DOG 1
 #define PET_LIZARD 2
 
-#define OFFLINE=0
-#define IDLE=1
-#define UP=2
-#define DOWN=3
-#define LOADING=4
+#define OFFLINE 0
+#define IDLE 1
+#define UP 2
+#define DOWN 3
+#define LOADING 4
 
 
 
