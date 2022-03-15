@@ -272,7 +272,8 @@ void m_init(void){
     mutex_init(&e.my_mutex);
     init_sys_calls();
     e.kthread=kthread_run(elevator,&e,"elevator thread");
-    for(int i=0;i<10;i++){
+    int i;
+    for(i=0;i<10;i++){
         INIT_LIST_HEAD(passengerInEachQueue[i])
         INIT_LIST_HEAD(passengersInsideElev[i])
     }
