@@ -127,7 +127,7 @@ int typeToWeight(int type){
     }
 }
 
-bool canLoad(){
+bool canLoad(void){
     struct list_head * pos;
 	struct list_head * temp;
     Pet * tempPet=NULL;
@@ -171,7 +171,7 @@ bool canLoad(){
 
 }
 
-void startLoad(){
+void startLoad(void){
     struct list_head * pos;
 	struct list_head * temp;
     Pet *tempPet=NULL;
@@ -203,7 +203,7 @@ void startLoad(){
     }
 }
 
-int elevator()        //function used in kthread_run as the elevator mmodule
+int elevator(void)        //function used in kthread_run as the elevator mmodule
 {
     while(!kthread_should_stop()){
         if(e.c_state==OFFLINE){
