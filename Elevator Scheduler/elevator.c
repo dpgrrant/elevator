@@ -27,9 +27,6 @@
 #define DOWN 3
 #define LOADING 4
 
-
-
-
 struct thread_parameter{
     struct list_head list;
     struct mutex my_mutex;
@@ -41,7 +38,6 @@ struct thread_parameter{
     bool issue_request;
     bool deactivated;
 };
-
 typedef struct{
     struct list_head list;
     int pet_type;
@@ -89,14 +85,19 @@ int stop_elevator(void){
     }
     mutex_unlock(&e.my_mutex);
     
-   
     do{
-        if(mutex_lock_interruptible(&e.my_mutex)==0 && e.c_occupants==0){
-            e.c_state=OFFLINE;
+        if(e.c_occupants!=0){
+            printk(KERN_NOTICE "Waiting for all passengers to exit before stopping.\n");
+            ssleep(2);
+        }else{
+            break;
         }
-        mutex_unlock(&e.my_mutex);
-        
-    }while(e.c_occupants!=0);
+    }while(1);
+
+    if(mutex_lock_interruptible(&e.my_mutex)==0){
+        e.c_state=OFFLINE;
+    }
+    mutex_unlock(&e.my_mutex);
     return 0;
 }
 
@@ -109,13 +110,6 @@ int issue_request(int boarding_floor, int final_floor,int pet_type){
     mutex_unlock(&e.my_mutex);
 
     return 1;
-}
-
-void init_sys_calls(void)           //assign STUB's to functions
-{
-    STUB_start_elevator=start_elevator;
-    STUB_stop_elevator=stop_elevator;
-    STUB_issue_request=issue_request;
 }
 
 int typeToWeight(int type){
@@ -135,13 +129,10 @@ bool canLoad(void){
     Pet * tempPet=NULL;
 
     if(mutex_lock_interruptible(&e.my_mutex)==0){
-
         list_for_each_safe(pos, temp, &passengerInEachQueue[e.c_floor-1]){
             tempPet=list_entry(pos, Pet, list);
-
             if(tempPet->boarding_floor == e.c_floor){
                 if(tempPet->boarding_floor < tempPet->destination_floor && e.c_state==UP){
-
                     if(e.c_occupants + 1 > MAX_PETS){
                         mutex_unlock(&e.my_mutex);
                         return false;
@@ -154,7 +145,6 @@ bool canLoad(void){
                     }
                 } 
                 else if(tempPet->boarding_floor > tempPet->destination_floor && e.c_state==DOWN){
-
                     if(e.c_occupants + 1 > MAX_PETS){
                         mutex_unlock(&e.my_mutex);
                         return false;
@@ -168,9 +158,7 @@ bool canLoad(void){
                 }
             }
         }
-
     }
-
 }
 
 void startLoad(void){
@@ -272,7 +260,9 @@ int elevator(void *data)        //function used in kthread_run as the elevator m
 
 int m_init(void){
     mutex_init(&e.my_mutex);
-    init_sys_calls();
+    STUB_start_elevator=start_elevator;
+    STUB_stop_elevator=stop_elevator;
+    STUB_issue_request=issue_request;
     e.kthread=kthread_run(elevator,&e,"elevator thread");
     int i;
     for(i=0;i<10;i++){
