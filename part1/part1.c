@@ -1,17 +1,11 @@
-#include <stdio.h>
-
 #include <unistd.h>
 
-int main()
-
-{
-
-    int p_id;
-
-    p_id = getpid();
-
-    printf("Process ID: %d\n", p_id);
-
+int main() {
+    access("/usr", F_OK);
+    getgid();
+    getpid();
+    char cwd[256]="";
+    getcwd(cwd, sizeof(cwd));
     return 0;
-
 }
+
