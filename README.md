@@ -1,2 +1,3 @@
 # Project2
-codes just for reference
+This project introduces us to the nuts and bolts of system calls, kernel programming, concurrency, and
+synchronization in the kernel. It is divided into three parts. 
