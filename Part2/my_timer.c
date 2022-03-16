@@ -33,7 +33,7 @@ int proc_timer_open(struct inode *sp_inode, struct file *sp_file) {
 	strcpy(message, "");
 	long int tv_sec=currentTime.tv_sec;
 	long int tv_nsec=currentTime.tv_nsec;
-	sprintf(buff, "current time: %ld.%09ld\n", tv_sec, tv_nsec);
+	sprintf(buff, "current time: %ld.%ld\n", tv_sec, tv_nsec);
 	strcat(message,buff);
 	long int elapsedSecs=0;
 	long int elapsedNsecs=0;
