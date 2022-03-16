@@ -113,6 +113,7 @@ int stop_elevator(void){
         e.c_state=OFFLINE;
     }
     mutex_unlock(&e.my_mutex);
+    return 0;
 }
 
 extern int (*STUB_issue_request)(int,int,int);
