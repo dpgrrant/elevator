@@ -1,7 +1,9 @@
 all:
-	gcc -o part1.x part1.c
-	gcc -o emptyProgram.x emptyProgram.c
-	strace -o part1.log ./part1.x
-	strace -o emptyProgram.log ./emptyProgram.x
+	
+	gcc -o empty.x empty.c 
+	strace -o empty.trace ./empty.x 	 
+	gcc -o part1.x part1.c 
+	strace -o part1.trace ./part1.x 
+
 clean:
 	rm *.x *.trace
