@@ -90,14 +90,29 @@ int start_elevator(void){
 
 extern int (*STUB_stop_elevator)(void);
 int stop_elevator(void){
-    printk(KERN_NOTICE "stop\n");
+
+    if(e.deactivated==true){
+        return 1;
+    }
+
     if(mutex_lock_interruptible(&e.my_mutex)==0){
-    	e.c_state=OFFLINE;
         e.deactivated=true;
-        kthread_stop(e.kthread);
     }
     mutex_unlock(&e.my_mutex);
-    return 0;
+    
+    do{
+        if(e.c_occupants!=0){
+            printk(KERN_NOTICE "Waiting for all passengers to exit before stopping.\n");
+            ssleep(2);
+        }else{
+            break;
+        }
+    }while(1);
+
+    if(mutex_lock_interruptible(&e.my_mutex)==0){
+        e.c_state=OFFLINE;
+    }
+    mutex_unlock(&e.my_mutex);
 }
 
 extern int (*STUB_issue_request)(int,int,int);
