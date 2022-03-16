@@ -293,12 +293,12 @@ void startLoad(void){
      mutex_unlock(&e.my_mutex);
 }
 int canUnload(void) { 
-  Pet *entry=NULL; 
-  struct list_head *pos;
+  Pet *pet=NULL; 
+  struct list_head *ptr;
    if(mutex_lock_interruptible(&e.my_mutex)==0){
-  list_for_each(pos, &passengersInsideElev) {
-    entry = list_entry(pos, Pet, list);
-    if (entry->destination_floor == e.c_floor) {
+  list_for_each(ptr, &passengersInsideElev) {
+    pet = list_entry(ptr, Pet, list);
+    if (pet->destination_floor == e.c_floor) {
     	printk(" canUnload" );
     	mutex_unlock(&e.my_mutex);
       return 1;
@@ -308,23 +308,22 @@ int canUnload(void) {
    mutex_unlock(&e.my_mutex);
   return 0;
 }
+
 void startUnload(void) {
-  Pet *entry;
+  Pet *pet;
   int tempState=e.c_state;
-  struct list_head *pos, *q;
+  struct list_head *ptr, *loc;
   if(mutex_lock_interruptible(&e.my_mutex)==0){
-  list_for_each_safe(pos, q, &passengersInsideElev) {
-    entry = list_entry(pos, Pet, list);
-    if (entry->destination_floor == e.c_floor) { 
-     // total_pets_served++;
+  list_for_each_safe(ptr, loc, &passengersInsideElev) {
+    pet = list_entry(ptr, Pet, list);
+    if (pet->destination_floor == e.c_floor) { 
      e.c_state=LOADING;
      e.c_occupants--;
-     e.c_weight=e.c_weight- typeToWeight(entry->pet_type);
+     e.c_weight=e.c_weight- typeToWeight(pet->pet_type);
      e.total_pets_served++;
      ssleep(1);
-     list_del(pos);
-      
-      kfree(entry);
+     list_del(ptr);    
+      kfree(pet);
       
     }
    }
