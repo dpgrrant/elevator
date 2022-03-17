@@ -110,6 +110,7 @@ int stop_elevator(void){
     }while(1);
 
     if(mutex_lock_interruptible(&e.my_mutex)==0){
+        printk(KERN_NOTICE "setting offline.\n");
         e.c_state=OFFLINE;
     }
     mutex_unlock(&e.my_mutex);
